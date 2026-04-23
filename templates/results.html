@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Risultati</title>
+</head>
+<body>
+    <h1>Risultati votazione</h1>
+
+    <table border="1" cellpadding="5">
+        <tr>
+            <th>Cantante: </th>
+            <th>Voti: </th>
+        </tr>
+
+        {% for r in results %}
+        <tr>
+            <td>{{ r[0] }}</td>
+            <td>{{ r[1] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</body>
+</html>

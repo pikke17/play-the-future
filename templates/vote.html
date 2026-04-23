@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vota</title>
+</head>
+<body>
+    <h1>Scegli il tuo cantante</h1>
+
+    <form action="/submit" method="post">
+
+        <input type="hidden" name="ticket_id" value="{{ ticket_id }}">
+
+        {% for singer in singers %}
+            <label>
+                <input type="radio" name="singer" value="{{ singer }}" required>
+                {{ singer }}
+            </label>
+            <br>
+        {% endfor %}
+
+        <br>
+        <button type="submit">Vota</button>
+    </form>
+
+</body>
+</html>
