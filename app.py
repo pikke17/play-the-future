@@ -15,6 +15,8 @@ def home():
 
 @app.route("/vote/<ticket_id>")
 def vote(ticket_id):
+
+    action = request.form.get("action")
     
     if not is_televoting_active():
         return render_template("televoting_closed.html")
@@ -40,7 +42,8 @@ def vote(ticket_id):
         conn.close()
         return render_template(
             "vote_ko.html",
-            singer=get_vote(ticket_id))
+            singer=get_vote(ticket_id),
+            ticket_id=ticket_id)
 
     # load singers
     cur.execute("SELECT id, firstName, lastName, songTitle, songAuthor FROM singers")
@@ -60,8 +63,24 @@ def vote(ticket_id):
 
 @app.route("/submit", methods=["POST"])
 def submit():
+    
+    action = request.form.get("action")
     ticket_id = request.form.get("ticket_id")
     singer_id = request.form.get("singer_id")
+
+    
+    if action == "reset_vote":
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("DELETE FROM votes WHERE ticket_id = ?", (ticket_id,))
+        cur.execute("UPDATE tickets SET has_voted = 0 WHERE ticket_id = ?", (ticket_id,))
+
+        conn.commit()
+        conn.close()
+
+        return redirect(url_for("vote", ticket_id=ticket_id))
+
 
     if not ticket_id or not singer_id:
         return "Dati mancanti", 400
@@ -84,7 +103,9 @@ def submit():
         conn.close()
         return render_template(
             "vote_ko.html",
-            singer=get_vote(ticket_id))
+            singer=get_vote(ticket_id),
+            ticket_id=ticket_id
+            )
 
     # save vote
     cur.execute(
@@ -101,6 +122,7 @@ def submit():
     conn.commit()
     conn.close()
 
+    print("RESET -> ticket_id:", ticket_id)
     return render_template(
         "vote_ok.html",
         singer=get_vote(ticket_id)
@@ -354,6 +376,21 @@ def get_vote(ticket_id):
     conn.close()
 
     return singer
+
+def reset_vote(ticket_id):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM votes WHERE ticket_id = ?", (ticket_id,))
+
+    cur.execute("""
+        UPDATE tickets
+        SET has_voted = 0
+        WHERE ticket_id = ?
+    """, (ticket_id,))
+
+    conn.commit()
+    conn.close()
 
 if __name__ == "__main__":
     app.run(debug=True)

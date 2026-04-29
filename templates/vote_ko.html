@@ -31,6 +31,17 @@
         </span>
       </div>
     {% endif %}
+ 
+    <form method="post" action="/submit">
+        <input type="hidden" name="ticket_id" value="{{ ticket_id }}">
+        <input type="hidden" name="action" value="reset_vote">
+
+        <button class="button"
+                style="background:#ea580c;"
+                onclick="return confirm('Vuoi davvero annullare il voto?')">
+            Reset voto
+        </button>
+    </form>
 
   </div>
 </div>
