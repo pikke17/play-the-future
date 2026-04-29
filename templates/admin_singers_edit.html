@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Edit Singer</title>
+</head>
+<body>
+
+<h1>✏️ Edit Singer</h1>
+
+<form method="post">
+    First name:<br>
+    <input type="text" name="firstName" value="{{ singer[1] }}" required><br><br>
+
+    Last name:<br>
+    <input type="text" name="lastName" value="{{ singer[2] }}" required><br><br>
+
+    Song title:<br>
+    <input type="text" name="songTitle" value="{{ singer[3] }}" required><br><br>
+
+    Song author:<br>
+    <input type="text" name="songAuthor" value="{{ singer[4] }}" required><br><br>
+
+    <button type="submit">💾 Save</button>
+</form>
+
+<br>
+<a href="/admin/singers">⬅ Back to singers</a>
+
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voto OK</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+
+<body>
+
+<div class="container">
+  <div class="card" style="text-align:center; padding:32px 16px;">
+
+    <div style="font-size:48px; margin-bottom:16px;">
+      ✅
+    </div>
+
+    <h1>Grazie per aver votato!</h1>
+
+    <p style="color: var(--muted); margin-top:12px;">
+      Il tuo voto è stato registrato correttamente.
+    </p>
+
+    {% if singer %}
+      <div style="margin-top:24px;">
+        <strong>Hai votato:</strong><br>
+        {{ singer[0] }} {{ singer[1] }}<br>
+        <span style="color: var(--muted); font-size:14px;">
+          {{ singer[2] }} — <em>{{ singer[3] }}</em>
+        </span>
+      </div>
+    {% endif %}
+
+  </div>
+</div>
+
+</body>
+</html>
+``

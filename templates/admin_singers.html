@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gestione Cantanti</title>
+</head>
+<body>
+
+<h1>Gestione Cantanti</h1>
+
+<h2>➕ Aggiungi nuovo cantante</h2>
+
+<form method="post">
+    Nome:<br>
+    <input type="text" name="firstName" required><br>
+
+    Cognome:<br>
+    <input type="text" name="lastName" required><br>
+
+    Canzone:<br>
+    <input type="text" name="songTitle" required><br>
+
+    Autore:<br>
+    <input type="text" name="songAuthor" required><br><br>
+
+    <button type="submit">Aggiungi cantante</button>
+</form>
+
+<hr>
+
+<h2>📋 Cantanti registrati</h2>
+
+<table border="1" cellpadding="6">
+<tr>
+    <th>Cantante</th>
+    <th>Canzone</th>
+    <th>Voti</th>
+    <th>Azioni</th>
+</tr>
+
+{% for s in singers %}
+<tr>
+    <td>{{ s[1] }} {{ s[2] }}</td>
+    <td>{{ s[3] }} – <em>{{ s[4] }}</em></td>
+    <td>{{ s[5] }}</td>
+    <td>
+        {% if s[5] == 0 %}
+            <a href="/admin/singers/edit/{{ s[0] }}">✏️ Modifica</a>
+            |
+            <a href="/admin/singers/delete/{{ s[0] }}"
+               onclick="return confirm('Cancellare questo cantante?')">
+               🗑 Elimina
+            </a>
+        {% else %}
+            🔒 Bloccato (ha voti)
+        {% endif %}
+    </td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="4">Nessun cantante inserito</td>
+</tr>
+{% endfor %}
+</table>
+
+<br>
+<a href="/admin_dashboard">⬅ Torna alla dashboard</a>
+
+</body>
+</html>

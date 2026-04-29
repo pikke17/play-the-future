@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+
+<h1>Dashboard Admin</h1>
+
+<p><strong>Voti totali:</strong> {{ total_votes }}</p>
+
+<h2>Risultati</h2>
+
+<table border="1" cellpadding="6">
+    <tr>
+        <th>Cantante</th>
+        <th>Canzone</th>
+        <th>Voti</th>
+        <th>%</th>
+    </tr>
+    {% for r in results %}
+    <tr>
+        <td>{{ r.firstName }} {{ r.lastName }}</td>
+        <td>{{ r.songTitle }} (<em>{{ r.songAuthor }}</em>)</td>
+        <td>{{ r.votes }}</td>
+        <td>{{ r.percentage }}</td>
+    </tr>
+    {% else %}
+    <tr>
+        <td colspan="2">Nessun voto</td>
+    </tr>
+    {% endfor %}
+</table>
+
+<hr>
+
+<h2>Televoto</h2>
+
+{% if televoting_active %}
+    <p>🟢 <strong>Televoto ATTIVO</strong></p>
+    <form method="post" action="/admin/televoting/stop">
+        <button onclick="return confirm('Chiudere il televoto?')">
+            🛑 Stop televoto
+        </button>
+    </form>
+{% else %}
+    <p>🔴 <strong>Televoto CHIUSO</strong></p>
+    <form method="post" action="/admin/televoting/start">
+        <button onclick="return confirm('Aprire il televoto?')">
+            ▶️ Avvia televoto
+        </button>
+    </form>
+{% endif %}
+
+<hr>
+
+<form method="post" action="/admin/reset">
+    <button type="submit"
+        onclick="return confirm('Resettare TUTTI i voti?')">
+        🔄 RESET VOTI
+    </button>
+</form>
+
+<br>
+
+<a href="/admin/singers">➕ Gestione cantanti</a><br>
+<a href="/admin/logout">🚪 Logout</a>
+
+</body>
+</html>
