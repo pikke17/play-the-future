@@ -1,30 +1,76 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
-    <title>Edit Singer</title>
+  <meta charset="UTF-8">
+  <title>Modifica cantante</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
 </head>
+
 <body>
 
-<h1>✏️ Edit Singer</h1>
+<div class="admin-container">
 
-<form method="post">
-    First name:<br>
-    <input type="text" name="firstName" value="{{ singer[1] }}" required><br><br>
+  <h1>Modifica cantante</h1>
 
-    Last name:<br>
-    <input type="text" name="lastName" value="{{ singer[2] }}" required><br><br>
+  <!-- ========================= -->
+  <!-- ✏️ FORM MODIFICA -->
+  <!-- ========================= -->
+  <div class="card">
 
-    Song title:<br>
-    <input type="text" name="songTitle" value="{{ singer[3] }}" required><br><br>
+    <form method="post" class="form">
 
-    Song author:<br>
-    <input type="text" name="songAuthor" value="{{ singer[4] }}" required><br><br>
+      <!-- NOME -->
+      <div class="form-group">
+        <label>Nome artista / gruppo</label>
+        <input name="firstName"
+               value="{{ singer[1] }}"
+               required>
+      </div>
 
-    <button type="submit">💾 Save</button>
-</form>
+      <!-- COGNOME -->
+      <div class="form-group">
+        <label>Cognome / secondo nome</label>
+        <input name="lastName"
+               value="{{ singer[2] }}">
+      </div>
 
-<br>
-<a href="/admin/singers">⬅ Back to singers</a>
+      <!-- CANZONE -->
+      <div class="form-group">
+        <label>Canzone</label>
+        <input name="songTitle"
+               value="{{ singer[3] }}"
+               required>
+      </div>
+
+      <!-- AUTORE -->
+      <div class="form-group">
+        <label>Autore</label>
+        <input name="songAuthor"
+               value="{{ singer[4] }}"
+               required>
+      </div>
+
+      <!-- SALVA -->
+      <button class="button admin-button">
+        Salva modifiche
+      </button>
+
+    </form>
+
+  </div>
+
+  <!-- ========================= -->
+  <!-- 🔙 TORNA INDIETRO -->
+  <!-- ========================= -->
+  <div style="margin-top: 20px;">
+    <a href="/admin/singers">
+      <button class="button admin-button">
+        Torna alla gestione cantanti
+      </button>
+    </a>
+  </div>
+
+</div>
 
 </body>
 </html>

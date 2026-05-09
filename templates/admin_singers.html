@@ -1,69 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
-    <title>Gestione Cantanti</title>
+  <meta charset="UTF-8">
+  <title>Gestione Cantanti</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
 </head>
+
 <body>
 
-<h1>Gestione Cantanti</h1>
+<div class="admin-container">
 
-<h2>➕ Aggiungi nuovo cantante</h2>
+  <h1>Gestione Cantanti</h1>
 
-<form method="post">
-    Nome:<br>
-    <input type="text" name="firstName" required><br>
+  <!-- ========================= -->
+  <!-- ➕ AGGIUNGI CANTANTE -->
+  <!-- ========================= -->
+  <div class="card">
+    <h2>Aggiungi cantante</h2>
 
-    Cognome:<br>
-    <input type="text" name="lastName" required><br>
+    <form method="post">
 
-    Canzone:<br>
-    <input type="text" name="songTitle" required><br>
+    <form method="post" class="form">
 
-    Autore:<br>
-    <input type="text" name="songAuthor" required><br><br>
+        <div class="form-group">
+            <label>Nome artista / gruppo</label>
+            <input name="firstName" required><br>
+        </div>
 
-    <button type="submit">Aggiungi cantante</button>
-</form>
+        <div class="form-group">
+            <label>Cognome / secondo nome</label>
+            <input name="lastName" ><br>
+        </div>
 
-<hr>
+        <div class="form-group">
+            <label>Canzone</label>
+            <input name="songTitle" required><br>
+        </div>
 
-<h2>📋 Cantanti registrati</h2>
+        <div class="form-group">
+            <label>Autore</label>
+            <input name="songAuthor" required><br>
+        </div>
 
-<table border="1" cellpadding="6">
-<tr>
-    <th>Cantante</th>
-    <th>Canzone</th>
-    <th>Voti</th>
-    <th>Azioni</th>
-</tr>
+        <button class="button admin-button">
+            Aggiungi cantante
+        </button>
 
-{% for s in singers %}
-<tr>
-    <td>{{ s[1] }} {{ s[2] }}</td>
-    <td>{{ s[3] }} – <em>{{ s[4] }}</em></td>
-    <td>{{ s[5] }}</td>
-    <td>
-        {% if s[5] == 0 %}
-            <a href="/admin/singers/edit/{{ s[0] }}">✏️ Modifica</a>
-            |
-            <a href="/admin/singers/delete/{{ s[0] }}"
-               onclick="return confirm('Cancellare questo cantante?')">
-               🗑 Elimina
+        </form>
+
+    </form>
+  </div>
+
+  <!-- ========================= -->
+  <!-- 📋 LISTA CANTANTI -->
+  <!-- ========================= -->
+  <div class="card">
+    <h2>Lista cantanti</h2>
+
+    {% for s in singers %}
+      <div class="singer-row">
+
+        <!-- INFO -->
+        <div>
+          <strong>{{ s[1] }} {{ s[2] }}</strong><br>
+          <span class="song">
+            {{ s[3] }} — <em>{{ s[4] }}</em>
+          </span><br>
+          <small>{{ s[5] }} voti</small>
+        </div>
+
+        <!-- AZIONI -->
+        <div class="actions">
+
+          {% if s[5] == 0 %}
+            <a href="/admin/singers/edit/{{ s[0] }}">
+              <button class="button admin-button">Modifica</button>
             </a>
-        {% else %}
-            🔒 Bloccato (ha voti)
-        {% endif %}
-    </td>
-</tr>
-{% else %}
-<tr>
-    <td colspan="4">Nessun cantante inserito</td>
-</tr>
-{% endfor %}
-</table>
 
-<br>
-<a href="/admin_dashboard">⬅ Torna alla dashboard</a>
+            <a href="/admin/singers/delete/{{ s[0] }}">
+              <button class="button admin-button" style="background:#dc2626;">
+                Elimina
+              </button>
+            </a>
+          {% else %}
+            <small style="color:var(--muted);">
+              🔒 Non modificabile (ha voti)
+            </small>
+          {% endif %}
+
+        </div>
+
+      </div>
+    {% endfor %}
+
+  </div>
+
+  <!-- 🔙 TORNA ALLA DASHBOARD -->
+  <div style="margin-top:20px;">
+    <a href="/admin_dashboard">
+      <button class="button admin-button">
+        Torna alla dashboard
+      </button>
+    </a>
+  </div>
+
+</div>
 
 </body>
 </html>

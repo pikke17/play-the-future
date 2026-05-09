@@ -1,70 +1,124 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
-    <title>Admin Dashboard</title>
+  <meta charset="UTF-8">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
 </head>
+
 <body>
 
-<h1>Dashboard Admin</h1>
+<div class="admin-container">
 
-<p><strong>Voti totali:</strong> {{ total_votes }}</p>
+  <h1>Dashboard Televoto</h1>
 
-<h2>Risultati</h2>
+  <!-- ========================= -->
+  <!-- ▶️ START / STOP TELEVOTO -->
+  <!-- ========================= -->
+  <div class="card">
+    <h2>Televoto</h2>
 
-<table border="1" cellpadding="6">
-    <tr>
-        <th>Cantante</th>
-        <th>Canzone</th>
-        <th>Voti</th>
-        <th>%</th>
-    </tr>
-    {% for r in results %}
-    <tr>
-        <td>{{ r.firstName }} {{ r.lastName }}</td>
-        <td>{{ r.songTitle }} (<em>{{ r.songAuthor }}</em>)</td>
-        <td>{{ r.votes }}</td>
-        <td>{{ r.percentage }}</td>
-    </tr>
+    <p>
+      Stato:
+      {% if televoting_active %}
+        <strong style="color:green;">ATTIVO</strong>
+      {% else %}
+        <strong style="color:red;">FERMO</strong>
+      {% endif %}
+    </p>
+
+    {% if televoting_active %}
+      <form method="post" action="/admin/televoting/stop">
+        <button class="button" style="background:#dc2626;">
+          Stop televoto
+        </button>
+      </form>
     {% else %}
-    <tr>
-        <td colspan="2">Nessun voto</td>
-    </tr>
+      <form method="post" action="/admin/televoting/start">
+        <button class="button" style="background:#16a34a;">
+          Avvia televoto
+        </button>
+      </form>
+    {% endif %}
+  </div>
+
+  <!-- ========================= -->
+  <!-- GRID SINISTRA / DESTRA -->
+  <!-- ========================= -->
+  <div class="admin-grid">
+
+    <!-- ========== SINISTRA ========== -->
+    <div class="left-column">
+
+      <!-- 🎤 GESTIONE CANTANTI -->
+      <div class="card">
+        <h2>Gestione cantanti</h2>
+
+        <form action="/admin/singers" method="get">
+          <button class="button">
+            Vai alla gestione cantanti
+          </button>
+        </form>
+      </div>
+
+      <!-- 🧑‍⚖️ GIURIA TECNICA -->
+      <div class="card">
+        <h2>Giuria tecnica</h2>
+
+        <form action="/admin/jury/tecnica" method="get">
+          <button class="button" style="background:#7c3aed;">
+            Gestisci giuria tecnica
+          </button>
+        </form>
+      </div>
+
+      <!-- 🧑‍⚖️ GIURIA DEMOSCOPICA -->
+      <div class="card">
+        <h2>Giuria demoscopica</h2>
+
+        <form action="/admin/jury/demoscopica" method="get">
+          <button class="button" style="background:#0ea5e9;">
+            Gestisci giuria demoscopica
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- ========== DESTRA ========== -->
+    <div class="right-column">
+
+      <!-- 📊 RISULTATI -->
+    <div class="card">
+    <h2>Risultati televoto</h2>
+
+    <p style="color: var(--muted); margin-bottom: 12px;">
+        Totale voti: <strong>{{ total_votes }}</strong>
+    </p>
+
+    {% for r in results %}
+        <div class="result-row">
+
+        <strong>{{ r.firstName }} {{ r.lastName }}</strong><br>
+
+        <small>
+            {{ r.votes }} voti – {{ r.percentage }}%
+        </small>
+
+        <div class="bar">
+            <div class="bar-fill" style="width: {{ r.percentage }}%;"></div>
+        </div>
+
+        </div>
     {% endfor %}
-</table>
 
-<hr>
+    </div>
 
-<h2>Televoto</h2>
+    </div>
 
-{% if televoting_active %}
-    <p>🟢 <strong>Televoto ATTIVO</strong></p>
-    <form method="post" action="/admin/televoting/stop">
-        <button onclick="return confirm('Chiudere il televoto?')">
-            🛑 Stop televoto
-        </button>
-    </form>
-{% else %}
-    <p>🔴 <strong>Televoto CHIUSO</strong></p>
-    <form method="post" action="/admin/televoting/start">
-        <button onclick="return confirm('Aprire il televoto?')">
-            ▶️ Avvia televoto
-        </button>
-    </form>
-{% endif %}
+  </div>
 
-<hr>
-
-<form method="post" action="/admin/reset">
-    <button type="submit"
-        onclick="return confirm('Resettare TUTTI i voti?')">
-        🔄 RESET VOTI
-    </button>
-</form>
-
-<br>
-
-<a href="/admin/singers">➕ Gestione cantanti</a><br>
-<a href="/admin/logout">🚪 Logout</a>
+</div>
 
 </body>
 </html>

@@ -15,8 +15,6 @@ def home():
 
 @app.route("/vote/<ticket_id>")
 def vote(ticket_id):
-
-    action = request.form.get("action")
     
     if not is_televoting_active():
         return render_template("televoting_closed.html")
@@ -125,8 +123,8 @@ def submit():
     print("RESET -> ticket_id:", ticket_id)
     return render_template(
         "vote_ok.html",
-        singer=get_vote(ticket_id)
-    )
+        singer=get_vote(ticket_id),
+        ticket_id=ticket_id)
 
 #----------ADMIN----------
 @app.route("/admin_login", methods=["GET", "POST"])
@@ -249,7 +247,11 @@ def admin_singers():
         lastName = request.form.get("lastName")
         songTitle = request.form.get("songTitle")
         songAuthor = request.form.get("songAuthor")
-        if firstName and lastName and songTitle and songAuthor:
+
+        # normalizza lastName (evita None)
+        lastName = lastName if lastName else ""
+
+        if firstName and songTitle and songAuthor:
             cur.execute("INSERT INTO singers (firstName, lastName, songTitle, songAuthor) VALUES (?, ?, ?, ?)",
                 (firstName, lastName, songTitle, songAuthor)
             )
@@ -314,8 +316,11 @@ def edit_singer(id):
         lastName = request.form.get("lastName")
         songTitle = request.form.get("songTitle")
         songAuthor = request.form.get("songAuthor")
+      
+        # normalizza lastName (evita None)
+        lastName = lastName if lastName else ""
 
-        if firstName and lastName and songTitle and songAuthor:
+        if firstName and songTitle and songAuthor:
             cur.execute("""
                 UPDATE singers
                 SET firstName = ?, lastName = ?, songTitle = ?, songAuthor = ?

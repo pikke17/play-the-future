@@ -32,9 +32,19 @@
       </div>
     {% endif %}
 
+    <form method="post" action="/submit">
+        <input type="hidden" name="ticket_id" value="{{ ticket_id }}">
+        <input type="hidden" name="action" value="reset_vote">
+
+        <button class="button"
+                style="background:#ea5a0cf3;"
+                onclick="return confirm('Vuoi davvero cambiare il voto?')">
+            Cambia voto
+        </button>
+    </form>
+
   </div>
 </div>
 
 </body>
 </html>
-``
