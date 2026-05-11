@@ -10,7 +10,24 @@
 
 <div class="admin-container">
 
-  <h1>Dashboard Televoto</h1>
+    <h1>Dashboard Televoto</h1>
+
+    <!-- 🗓️ DAY CONTROL -->
+    <div class="card">
+    <h2>Serata</h2>
+
+    <p>Serata attiva: <strong>{{ current_day }}</strong></p>
+
+        <div style="display:flex; gap:10px;">
+        <form method="post" action="/admin/day/1">
+            <button class="button admin-button">Day 1</button>
+        </form>
+
+        <form method="post" action="/admin/day/2">
+            <button class="button admin-button">Day 2</button>
+        </form>
+        </div>
+    </div>
 
   <!-- ========================= -->
   <!-- ▶️ START / STOP TELEVOTO -->

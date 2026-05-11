@@ -13,7 +13,8 @@ def init_db():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS tickets (
             ticket_id TEXT PRIMARY KEY,
-            has_voted INTEGER
+            has_voted INTEGER,
+            day INTEGER NOT NULL
         )
     """)
 
@@ -22,7 +23,8 @@ def init_db():
         CREATE TABLE IF NOT EXISTS votes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             ticket_id TEXT,
-            singer_id INTEGER
+            singer_id INTEGER,
+            day INTEGER NOT NULL
         )
     """)
 
@@ -31,9 +33,10 @@ def init_db():
         CREATE TABLE IF NOT EXISTS singers (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             firstName TEXT NOT NULL,
-            lastName TEXT NOT NULL,
+            lastName TEXT,
             songTitle TEXT NOT NULL,
-            songAuthor TEXT NOT NULL
+            songAuthor TEXT NOT NULL,
+            day INTEGER NOT NULL
         )
     """)
 
@@ -45,10 +48,21 @@ def init_db():
         )
     """)
 
-    # default --> telvoting OFF
+    # default --> televoting OFF
     cur.execute("""
         INSERT OR IGNORE INTO config (key, value)
-        VALUES ('televoting_active', '0')
+        VALUES ('televoting_active_day_1', '0')
+    """)
+
+    cur.execute("""
+        INSERT OR IGNORE INTO config (key, value)
+        VALUES ('televoting_active_day_2', '0')
+    """)
+
+    # default --> current day = 1
+    cur.execute("""
+        INSERT OR IGNORE INTO config (key, value)
+        VALUES ('current_day', '1')
     """)
 
 

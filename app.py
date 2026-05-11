@@ -44,7 +44,12 @@ def vote(ticket_id):
             ticket_id=ticket_id)
 
     # load singers
-    cur.execute("SELECT id, firstName, lastName, songTitle, songAuthor FROM singers")
+    day = get_current_day()
+    cur.execute("""
+        SELECT id, firstName, lastName, songTitle, songAuthor
+        FROM singers
+        WHERE day = ?
+    """, (day,))
     singers = cur.fetchall()
 
     conn.close()
@@ -106,10 +111,11 @@ def submit():
             )
 
     # save vote
+    day = get_current_day()
     cur.execute(
-        "INSERT INTO votes (ticket_id, singer_id) VALUES (?, ?)",
-        (ticket_id, singer_id)
-    )
+        "INSERT INTO votes (ticket_id, singer_id, day) VALUES (?, ?, ?)",
+        (ticket_id, singer_id, day)
+)
 
     # lock ticket
     cur.execute(
@@ -158,6 +164,7 @@ def admin_dashboard():
     cur = conn.cursor()
 
     # results
+    day = get_current_day()
     cur.execute("""
         SELECT
             s.id,
@@ -167,13 +174,19 @@ def admin_dashboard():
             s.songAuthor,
             COUNT(v.id) AS votesCount
         FROM singers s
-        LEFT JOIN votes v ON s.id = v.singer_id
+        LEFT JOIN votes v 
+            ON s.id = v.singer_id
+            AND v.day = ?
+        WHERE s.day = ?
         GROUP BY s.id
         ORDER BY votesCount DESC
-    """)
+    """, (day, day))
     rows = cur.fetchall()
 
-    cur.execute("SELECT COUNT(*) FROM votes")
+    
+    day = get_current_day()
+
+    cur.execute("SELECT COUNT(*) FROM votes WHERE day = ?", (day,))
     total_votes = cur.fetchone()[0]
 
     results = []
@@ -196,7 +209,8 @@ def admin_dashboard():
         "admin_dashboard.html",
         results=results,
         total_votes=total_votes,
-        televoting_active=is_televoting_active()
+        televoting_active=is_televoting_active(),
+        current_day=get_current_day()
     )
 
 @app.route("/admin/televoting/start", methods=["POST"])
@@ -251,25 +265,29 @@ def admin_singers():
         # normalizza lastName (evita None)
         lastName = lastName if lastName else ""
 
-        if firstName and songTitle and songAuthor:
-            cur.execute("INSERT INTO singers (firstName, lastName, songTitle, songAuthor) VALUES (?, ?, ?, ?)",
-                (firstName, lastName, songTitle, songAuthor)
-            )
-            conn.commit()
+        day = request.form.get("day")
+
+        cur.execute("""
+            INSERT INTO singers 
+            (firstName, lastName, songTitle, songAuthor, day)
+            VALUES (?, ?, ?, ?, ?)
+        """, (firstName, lastName, songTitle, songAuthor, day))
+        conn.commit()
 
     # singers list
     cur.execute("""
-        SELECT
-            s.id,
-            s.firstName,
-            s.lastName,
-            s.songTitle,
-            s.songAuthor,
-            COUNT(v.id) AS votes
-        FROM singers s
-        LEFT JOIN votes v ON s.id = v.singer_id
-        GROUP BY s.id
-        ORDER BY s.firstName, s.lastName
+    SELECT
+        s.id,
+        s.firstName,
+        s.lastName,
+        s.songTitle,
+        s.songAuthor,
+        s.day,
+        COUNT(v.id) AS votes
+    FROM singers s
+    LEFT JOIN votes v ON s.id = v.singer_id
+    GROUP BY s.id
+    ORDER BY s.day, s.firstName, s.lastName
     """)
     singers = cur.fetchall()
 
@@ -340,24 +358,38 @@ def edit_singer(id):
 
     return render_template("admin_singers_edit.html", singer=singer)
 
+@app.route("/admin/day/<int:day>", methods=["POST"])
+def change_day(day):
+    if not session.get("admin_logged"):
+        return redirect(url_for("admin_login"))
+
+    set_current_day(day)
+    return redirect(url_for("admin_dashboard"))
+
 #----------PRIVATE FUNCTIONS----------
-def is_televoting_active():
+def is_televoting_active(day):
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute(
-        "SELECT value FROM config WHERE key = 'televoting_active'"
-    )
+
+    key = f"televoting_active_day_{day}"
+
+    cur.execute("SELECT value FROM config WHERE key = ?", (key,))
     row = cur.fetchone()
+
     conn.close()
     return row and row[0] == "1"
 
-def set_televoting_active(active: bool):
+def set_televoting_active(day, active: bool):
     conn = get_connection()
     cur = conn.cursor()
+
+    key = f"televoting_active_day_{day}"
+
     cur.execute(
-        "UPDATE config SET value = ? WHERE key = 'televoting_active'",
-        ("1" if active else "0",)
+        "UPDATE config SET value = ? WHERE key = ?",
+        ("1" if active else "0", key)
     )
+
     conn.commit()
     conn.close()
 
@@ -394,6 +426,24 @@ def reset_vote(ticket_id):
         WHERE ticket_id = ?
     """, (ticket_id,))
 
+    conn.commit()
+    conn.close()
+
+def get_current_day():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT value FROM config WHERE key = 'current_day'")
+    row = cur.fetchone()
+    conn.close()
+    return int(row[0]) if row else 1
+
+def set_current_day(day: int):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "UPDATE config SET value = ? WHERE key = 'current_day'",
+        (str(day),)
+    )
     conn.commit()
     conn.close()
 

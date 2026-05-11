@@ -42,6 +42,14 @@
             <input name="songAuthor" required><br>
         </div>
 
+        <div class="form-group">
+        <label>Serata</label>
+        <select name="day" required>
+            <option value="1">PLAY TOGETHER</option>
+            <option value="2">VIDEOFESTIVAL</option>
+        </select>
+        </div>
+
         <button class="button admin-button">
             Aggiungi cantante
         </button>
@@ -52,27 +60,35 @@
   </div>
 
   <!-- ========================= -->
-  <!-- 📋 LISTA CANTANTI -->
-  <!-- ========================= -->
-  <div class="card">
-    <h2>Lista cantanti</h2>
+<!-- 📋 LISTA CANTANTI -->
+<!-- ========================= -->
+<div class="card">
+  <h2>Lista cantanti</h2>
 
-    {% for s in singers %}
+  <!-- ===== DAY 1 ===== -->
+  <h3>Serata PLAY TOGETHER</h3>
+
+  {% for s in singers %}
+    {% if s[5] == 1 %}
       <div class="singer-row">
 
         <!-- INFO -->
         <div>
-          <strong>{{ s[1] }} {{ s[2] }}</strong><br>
+          <strong>
+            {{ s[1] }}{% if s[2] %} {{ s[2] }}{% endif %}
+          </strong><br>
+
           <span class="song">
             {{ s[3] }} — <em>{{ s[4] }}</em>
           </span><br>
-          <small>{{ s[5] }} voti</small>
+
+          <small>{{ s[6] }} voti</small>
         </div>
 
         <!-- AZIONI -->
         <div class="actions">
 
-          {% if s[5] == 0 %}
+          {% if s[6] == 0 %}
             <a href="/admin/singers/edit/{{ s[0] }}">
               <button class="button admin-button">Modifica</button>
             </a>
@@ -91,9 +107,56 @@
         </div>
 
       </div>
-    {% endfor %}
+    {% endif %}
+  {% endfor %}
 
-  </div>
+
+  <!-- ===== DAY 2 ===== -->
+  <h3 style="margin-top:20px;">Serata VIDEOFESTIVAL</h3>
+
+  {% for s in singers %}
+    {% if s[5] == 2 %}
+      <div class="singer-row">
+
+        <!-- INFO -->
+        <div>
+          <strong>
+            {{ s[1] }}{% if s[2] %} {{ s[2] }}{% endif %}
+          </strong><br>
+
+          <span class="song">
+            {{ s[3] }} — <em>{{ s[4] }}</em>
+          </span><br>
+
+          <small>{{ s[6] }} voti</small>
+        </div>
+
+        <!-- AZIONI -->
+        <div class="actions">
+
+          {% if s[6] == 0 %}
+            <a href="/admin/singers/edit/{{ s[0] }}">
+              <button class="button admin-button">Modifica</button>
+            </a>
+
+            <a href="/admin/singers/delete/{{ s[0] }}">
+              <button class="button admin-button" style="background:#dc2626;">
+                Elimina
+              </button>
+            </a>
+          {% else %}
+            <small style="color:var(--muted);">
+              🔒 Non modificabile (ha voti)
+            </small>
+          {% endif %}
+
+        </div>
+
+      </div>
+    {% endif %}
+  {% endfor %}
+
+</div>
 
   <!-- 🔙 TORNA ALLA DASHBOARD -->
   <div style="margin-top:20px;">
