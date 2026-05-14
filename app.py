@@ -8,6 +8,21 @@ ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "leccheria69")
 
 init_db()
 
+#import tickets
+from database import get_connection
+from utility.import_tickets import import_file
+
+conn = get_connection()
+cur = conn.cursor()
+
+cur.execute("SELECT COUNT(*) FROM tickets")
+count = cur.fetchone()[0]
+conn.close()
+
+if count == 0:
+    import_file("tickets_day_1.txt", 1)
+    import_file("tickets_day_2.txt", 2)
+
 #----------USER----------
 @app.route("/")
 def home():
