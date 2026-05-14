@@ -15,53 +15,62 @@ def home():
 
 @app.route("/vote/<ticket_id>")
 def vote(ticket_id):
-    
-    if not is_televoting_active():
-        return render_template("televoting_closed.html")
 
     conn = get_connection()
     cur = conn.cursor()
 
-    # check ticket
+    # ✅ 1. controlla ticket + recupera day
     cur.execute(
-        "SELECT has_voted FROM tickets WHERE ticket_id = ?",
+        "SELECT has_voted, day FROM tickets WHERE ticket_id = ?",
         (ticket_id,)
     )
     row = cur.fetchone()
 
+    # ❌ ticket inesistente
     if row is None:
-        # new ticket
-        cur.execute(
-            "INSERT INTO tickets (ticket_id, has_voted) VALUES (?, 0)",
-            (ticket_id,)
+        conn.close()
+        return "Ticket non valido", 400
+
+    has_voted = row[0]
+    ticket_day = row[1]
+
+    # ✅ 2. controlla televoto per quel day
+    if not is_televoting_active(ticket_day):
+        conn.close()
+        return render_template(
+            "televoting_closed.html",
+            day=ticket_day
         )
-        conn.commit()
-    elif row[0] == 1:
+
+    # ✅ 3. controlla se ha già votato
+    if has_voted == 1:
         conn.close()
         return render_template(
             "vote_ko.html",
             singer=get_vote(ticket_id),
-            ticket_id=ticket_id)
+            ticket_id=ticket_id
+        )
 
-    # load singers
-    day = get_current_day()
+    # ✅ 4. carica cantanti del day del ticket
     cur.execute("""
         SELECT id, firstName, lastName, songTitle, songAuthor
         FROM singers
         WHERE day = ?
-    """, (day,))
+    """, (ticket_day,))
+
     singers = cur.fetchall()
 
     conn.close()
 
     if not singers:
-        return "Nessun cantante disponibile al momento."
+        return "Nessun cantante disponibile per questa serata."
 
-    # vote page
+    # ✅ 5. mostra pagina voto con day
     return render_template(
         "vote.html",
         ticket_id=ticket_id,
-        singers=singers
+        singers=singers,
+        day=ticket_day
     )
 
 @app.route("/submit", methods=["POST"])
@@ -71,7 +80,7 @@ def submit():
     ticket_id = request.form.get("ticket_id")
     singer_id = request.form.get("singer_id")
 
-    
+    # ✅ RESET VOTO
     if action == "reset_vote":
         conn = get_connection()
         cur = conn.cursor()
@@ -91,9 +100,9 @@ def submit():
     conn = get_connection()
     cur = conn.cursor()
 
-    # check ticket
+    # ✅ recupera ticket + day
     cur.execute(
-        "SELECT has_voted FROM tickets WHERE ticket_id = ?",
+        "SELECT has_voted, day FROM tickets WHERE ticket_id = ?",
         (ticket_id,)
     )
     row = cur.fetchone()
@@ -102,22 +111,34 @@ def submit():
         conn.close()
         return "Ticket non valido", 400
 
-    if row[0] == 1:
+    has_voted = row[0]
+    ticket_day = row[1]
+
+    # ✅ controllo doppio voto
+    if has_voted == 1:
         conn.close()
         return render_template(
             "vote_ko.html",
             singer=get_vote(ticket_id),
             ticket_id=ticket_id
-            )
+        )
 
-    # save vote
-    day = get_current_day()
+    # ✅ controllo sicurezza (opzionale ma consigliato)
+    cur.execute(
+        "SELECT id FROM singers WHERE id = ? AND day = ?",
+        (singer_id, ticket_day)
+    )
+    if cur.fetchone() is None:
+        conn.close()
+        return "Errore: cantante non valido per questa serata", 400
+
+    # ✅ salva voto con DAY CORRETTO
     cur.execute(
         "INSERT INTO votes (ticket_id, singer_id, day) VALUES (?, ?, ?)",
-        (ticket_id, singer_id, day)
-)
+        (ticket_id, singer_id, ticket_day)
+    )
 
-    # lock ticket
+    # ✅ blocca ticket
     cur.execute(
         "UPDATE tickets SET has_voted = 1 WHERE ticket_id = ?",
         (ticket_id,)
@@ -126,11 +147,11 @@ def submit():
     conn.commit()
     conn.close()
 
-    print("RESET -> ticket_id:", ticket_id)
     return render_template(
         "vote_ok.html",
         singer=get_vote(ticket_id),
-        ticket_id=ticket_id)
+        ticket_id=ticket_id
+    )
 
 #----------ADMIN----------
 @app.route("/admin_login", methods=["GET", "POST"])
@@ -209,7 +230,7 @@ def admin_dashboard():
         "admin_dashboard.html",
         results=results,
         total_votes=total_votes,
-        televoting_active=is_televoting_active(),
+        televoting_active=is_televoting_active(get_current_day()),
         current_day=get_current_day()
     )
 
@@ -218,7 +239,7 @@ def televoting_start():
     if not session.get("admin_logged"):
         return redirect(url_for("admin"))
 
-    set_televoting_active(True)
+    set_televoting_active(get_current_day(), True)
     return redirect(url_for("admin_dashboard"))
 
 @app.route("/admin/televoting/stop", methods=["POST"])
@@ -226,7 +247,7 @@ def televoting_stop():
     if not session.get("admin_logged"):
         return redirect(url_for("admin"))
 
-    set_televoting_active(False)
+    set_televoting_active(get_current_day(), False)
     return redirect(url_for("admin_dashboard"))
 
 @app.route("/admin/reset", methods=["POST"])
@@ -384,10 +405,11 @@ def set_televoting_active(day, active: bool):
     cur = conn.cursor()
 
     key = f"televoting_active_day_{day}"
+    value = "1" if active else "0"
 
     cur.execute(
         "UPDATE config SET value = ? WHERE key = ?",
-        ("1" if active else "0", key)
+        (value, key)
     )
 
     conn.commit()

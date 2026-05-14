@@ -244,3 +244,37 @@ h1 {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
 }
+
+/* DAY CARD */
+.day-card {
+  padding: 14px;
+}
+
+/* HEADER */
+.day-header {
+  display: flex;
+  justify-content: center;  /* centrato */
+  margin-bottom: 12px;
+}
+
+/* TITOLO SERATA */
+.day-title {
+  font-size: 20px;          /* più grande */
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* BUTTON GROUP */
+.day-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.day-actions form {
+  flex: 1;   /* 👈 allarga i bottoni */
+}
+
+.day-btn {
+  width: 100%;   /* 👈 riempie lo spazio */
+}
+
