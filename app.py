@@ -265,7 +265,7 @@ def televoting_stop():
     set_televoting_active(get_current_day(), False)
     return redirect(url_for("admin_dashboard"))
 
-@app.route("/admin/reset", methods=["POST"])
+@app.route("/admin/reset")
 def admin_reset():
     
     if not session.get("admin_logged"):
@@ -275,7 +275,6 @@ def admin_reset():
     cur = conn.cursor()
 
     cur.execute("DELETE FROM votes")
-
     cur.execute("UPDATE tickets SET has_voted = 0")
 
     conn.commit()
@@ -343,9 +342,8 @@ def delete_singer(id):
     cur.execute("SELECT COUNT(*) FROM votes WHERE singer_id = ?", (id,))
     votes_count = cur.fetchone()[0]
 
-    if votes_count == 0:
-        cur.execute("DELETE FROM singers WHERE id = ?", (id,))
-        conn.commit()
+    cur.execute("DELETE FROM singers WHERE id = ?", (id,))
+    conn.commit()
 
     conn.close()
     return redirect(url_for("admin_singers"))
@@ -393,6 +391,82 @@ def edit_singer(id):
         return "Cantante non trovato", 404
 
     return render_template("admin_singers_edit.html", singer=singer)
+
+from flask import Response
+@app.route("/admin/singers/export")
+def export_singers():
+    if not session.get("admin_logged"):
+        return redirect(url_for("admin_login"))
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT firstName, lastName, songTitle, songAuthor, day
+        FROM singers
+        ORDER BY day, firstName
+    """)
+
+    rows = cur.fetchall()
+    conn.close()
+
+    # costruzione CSV
+    lines = ["firstName,lastName,songTitle,songAuthor,day"]
+
+    for r in rows:
+        lines.append(",".join([
+            r[0] or "",
+            r[1] or "",
+            r[2] or "",
+            r[3] or "",
+            str(r[4])
+        ]))
+
+    csv_data = "\n".join(lines)
+
+    return Response(
+        csv_data,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=singers.csv"}
+    )
+
+import csv
+import io
+@app.route("/admin/singers/import", methods=["POST"])
+def import_singers():
+    if not session.get("admin_logged"):
+        return redirect(url_for("admin_login"))
+
+    file = request.files.get("file")
+
+    if not file:
+        return "File mancante", 400
+
+    stream = io.StringIO(file.stream.read().decode("UTF-8"))
+    reader = csv.DictReader(stream)
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    for row in reader:
+        try:
+            cur.execute("""
+                INSERT INTO singers (firstName, lastName, songTitle, songAuthor, day)
+                VALUES (?, ?, ?, ?, ?)
+            """, (
+                row["firstName"],
+                row["lastName"],
+                row["songTitle"],
+                row["songAuthor"],
+                int(row["day"])
+            ))
+        except:
+            pass  # ignora duplicati/errori
+
+    conn.commit()
+    conn.close()
+
+    return redirect(url_for("admin_singers"))
 
 @app.route("/admin/day/<int:day>", methods=["POST"])
 def change_day(day):

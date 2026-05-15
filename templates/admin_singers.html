@@ -88,7 +88,6 @@
         <!-- AZIONI -->
         <div class="actions">
 
-          {% if s[6] == 0 %}
             <a href="/admin/singers/edit/{{ s[0] }}">
               <button class="button admin-button">Modifica</button>
             </a>
@@ -98,11 +97,6 @@
                 Elimina
               </button>
             </a>
-          {% else %}
-            <small style="color:var(--muted);">
-              🔒 Non modificabile (ha voti)
-            </small>
-          {% endif %}
 
         </div>
 
@@ -134,7 +128,6 @@
         <!-- AZIONI -->
         <div class="actions">
 
-          {% if s[6] == 0 %}
             <a href="/admin/singers/edit/{{ s[0] }}">
               <button class="button admin-button">Modifica</button>
             </a>
@@ -144,11 +137,6 @@
                 Elimina
               </button>
             </a>
-          {% else %}
-            <small style="color:var(--muted);">
-              🔒 Non modificabile (ha voti)
-            </small>
-          {% endif %}
 
         </div>
 
@@ -158,14 +146,36 @@
 
 </div>
 
-  <!-- 🔙 TORNA ALLA DASHBOARD -->
-  <div style="margin-top:20px;">
-    <a href="/admin_dashboard">
-      <button class="button admin-button">
-        Torna alla dashboard
-      </button>
-    </a>
+  <div class="card">
+  <h2>Importa cantanti</h2>
+
+  <form method="post" action="/admin/singers/import" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".csv" required>
+    <button class="button admin-button">Importa cantanti</button>
+  </form>
+
+  <a href="/admin/singers/export">
+    <button class="button admin-button">Esporta cantanti</button>
+  </a>
+
   </div>
+
+  <div class="actions-row">
+
+    <a href="/admin_dashboard">
+        <button class="button admin-button">
+        Torna alla dashboard
+        </button>
+    </a>
+
+    <a href="/admin/reset">
+        <button class="button admin-button danger-btn">
+        Reset voti
+        </button>
+    </a>
+    
+  </div>
+
 
 </div>
 

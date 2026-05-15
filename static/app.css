@@ -278,3 +278,22 @@ h1 {
   width: 100%;   /* 👈 riempie lo spazio */
 }
 
+.actions-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.actions-row a {
+  flex: 1;
+}
+
+.actions-row .button {
+  width: 100%;
+}
+
+/* bottone rosso */
+.danger-btn {
+  background: #dc2626;
+}
+
