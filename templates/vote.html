@@ -41,9 +41,15 @@
 
 <div class="container">
 
-    <div class="card">
-        <h2>Televoto Day {{ day }}</h2>
-    </div>
+    <div class="day-header">
+            <span class="day-title">
+            {% if day == 1 %}
+                🎤 Play Together 05/06/2026
+            {% elif day == 2 %}
+                🎬 Videofestival 06/06/2026
+            {% endif %}
+            </span>
+        </div>
 
     <h1>Scegli il cantante</h1>
 
