@@ -65,6 +65,11 @@ def init_db():
         VALUES ('current_day', '1')
     """)
 
+    # unique vote per ticket (anti doppio voto)
+    cur.execute("""
+        CREATE UNIQUE INDEX IF NOT EXISTS idx_ticket_vote
+        ON votes(ticket_id)
+    """)
 
     conn.commit()
     conn.close()

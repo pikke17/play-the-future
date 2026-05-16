@@ -115,27 +115,32 @@ def submit():
     conn = get_connection()
     cur = conn.cursor()
 
-    # ✅ recupera ticket + day
-    cur.execute(
-        "SELECT has_voted, day FROM tickets WHERE ticket_id = ?",
-        (ticket_id,)
-    )
-    row = cur.fetchone()
+    # ✅ BLOCCO ATOMICO DEL TICKET
+    cur.execute("""
+        UPDATE tickets
+        SET has_voted = 1
+        WHERE ticket_id = ? AND has_voted = 0
+    """, (ticket_id,))
 
-    if row is None:
-        conn.close()
-        return "Ticket non valido", 400
-
-    has_voted = row[0]
-    ticket_day = row[1]
-
-    # ✅ controllo doppio voto
-    if has_voted == 1:
+    # ✅ se non ha aggiornato → già votato
+    if cur.rowcount == 0:
         conn.close()
         return render_template(
             "vote_ko.html",
             singer=get_vote(ticket_id),
             ticket_id=ticket_id
+    )
+
+    # ✅ ora recupera il day del ticket
+    cur.execute("SELECT day FROM tickets WHERE ticket_id = ?", (ticket_id,))
+    ticket_day = cur.fetchone()[0]
+    
+    # ✅ QUI METTI IL CONTROLLO
+    if not is_televoting_active(ticket_day):
+        conn.close()
+        return render_template(
+            "televoting_closed.html",
+            day=ticket_day
         )
 
     # ✅ controllo sicurezza (opzionale ma consigliato)
@@ -148,10 +153,19 @@ def submit():
         return "Errore: cantante non valido per questa serata", 400
 
     # ✅ salva voto con DAY CORRETTO
-    cur.execute(
-        "INSERT INTO votes (ticket_id, singer_id, day) VALUES (?, ?, ?)",
-        (ticket_id, singer_id, ticket_day)
+    try:
+        cur.execute(
+            "INSERT INTO votes (ticket_id, singer_id, day) VALUES (?, ?, ?)",
+            (ticket_id, singer_id, ticket_day)
     )
+    except Exception as e:
+        conn.close()
+        print("Errore insert:", e)  # utile debug
+        return render_template(
+            "vote_ko.html",
+            singer=None,
+            ticket_id=ticket_id
+        )
 
     # ✅ blocca ticket
     cur.execute(
@@ -219,10 +233,12 @@ def admin_dashboard():
     """, (day, day))
     rows = cur.fetchall()
 
-    
-    day = get_current_day()
-
-    cur.execute("SELECT COUNT(*) FROM votes WHERE day = ?", (day,))
+    cur.execute("""
+        SELECT COUNT(*)
+        FROM votes v
+        JOIN singers s ON v.singer_id = s.id
+        WHERE v.day = ? AND s.day = ?
+    """, (day, day))
     total_votes = cur.fetchone()[0]
 
     results = []
